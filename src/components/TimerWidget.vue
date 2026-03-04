@@ -59,7 +59,7 @@ const mainDisplay = computed(() => {
   return {
     label: timerStore.t.status.working,
     time: timerStore.formattedTime,
-    colorClass: 'text-indigo-600 dark:text-indigo-400',
+    colorClass: 'text-[var(--tt-primary,#4f46e5)] dark:text-[var(--tt-primary-light,#818cf8)]',
     icon: Clock
   }
 })
@@ -169,7 +169,7 @@ async function submitEdit() {
         <button
             @click="timerStore.registerPoint"
             :disabled="timerStore.isProcessing"
-            class="group relative flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            class="group relative flex items-center justify-center bg-[var(--tt-primary,#4f46e5)] hover:bg-[var(--tt-primary-hover,#4338ca)] text-white shadow-lg shadow-[var(--tt-primary,#4f46e5)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
             :class="compact ? 'w-9 h-9 rounded-lg' : 'w-12 h-12 rounded-2xl'"
         >
           <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="compact ? 16 : 20" />
@@ -183,7 +183,7 @@ async function submitEdit() {
             v-if="timerStore.status === 'WORKING' || timerStore.status === 'PAUSED'"
             @click="timerStore.registerExit"
             :disabled="timerStore.isProcessing"
-            class="group relative flex items-center justify-center border border-gray-200 dark:border-gray-700 text-gray-400 hover:border-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/10 dark:hover:text-red-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-200 disabled:hover:text-gray-400"
+            class="group relative flex items-center justify-center border-2 border-red-500 text-red-500 bg-transparent hover:bg-red-500 hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-red-500 dark:disabled:hover:text-red-400 dark:disabled:hover:bg-transparent"
             :class="compact ? 'w-9 h-9 rounded-lg' : 'w-12 h-12 rounded-2xl'"
         >
           <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="compact ? 14 : 18" />
@@ -198,7 +198,7 @@ async function submitEdit() {
 
     <div class="flex items-center justify-end border-t border-gray-50 dark:border-gray-800/50" :class="compact ? 'mt-1 pt-0.5' : 'mt-2 pt-1.5'">
       <button @click="showDetails = true"
-              class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer font-medium hover:bg-gray-50 dark:hover:bg-gray-800" :class="compact ? 'py-0.5 px-1.5' : 'py-1 px-2 rounded-full'">
+              class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] dark:hover:text-[var(--tt-primary-light,#818cf8)] transition-colors cursor-pointer font-medium hover:bg-gray-50 dark:hover:bg-gray-800" :class="compact ? 'py-0.5 px-1.5' : 'py-1 px-2 rounded-full'">
         <span>{{ timerStore.t.actions.openPanel }}</span>
         <ChevronRight :size="12" />
       </button>
@@ -210,26 +210,26 @@ async function submitEdit() {
     <div v-if="editingRecordId" class="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
       <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl w-full max-w-xs p-5">
         <h3 class="text-sm font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-          <Clock :size="16" class="text-indigo-500" />
+          <Clock :size="16" class="text-[var(--tt-primary,#4f46e5)]" />
           {{ timerStore.t.edit.title }}
         </h3>
 
         <div class="space-y-4">
           <div>
             <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">{{ timerStore.t.edit.newTime }}</label>
-            <input type="time" v-model="editTime" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+            <input type="time" v-model="editTime" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-[var(--tt-primary,#4f46e5)] outline-none" />
           </div>
 
           <div>
             <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">{{ timerStore.t.edit.justification }}</label>
-            <textarea v-model="editJustification" rows="3" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none placeholder-gray-400" :placeholder="timerStore.t.edit.placeholder"></textarea>
+            <textarea v-model="editJustification" rows="3" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--tt-primary,#4f46e5)] outline-none placeholder-gray-400" :placeholder="timerStore.t.edit.placeholder"></textarea>
             <span v-if="editError" class="text-[10px] font-bold text-red-500 mt-1 block">{{ editError }}</span>
           </div>
         </div>
 
         <div class="flex gap-2 mt-5">
           <button @click="closeEditModal" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-50">{{ timerStore.t.edit.cancel }}</button>
-          <button @click="submitEdit" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 cursor-pointer disabled:opacity-50">{{ timerStore.t.edit.save }}</button>
+          <button @click="submitEdit" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 bg-[var(--tt-primary,#4f46e5)] hover:bg-[var(--tt-primary-hover,#4338ca)] text-white rounded-xl text-xs font-bold transition-colors shadow-lg shadow-[var(--tt-primary,#4f46e5)]/20 cursor-pointer disabled:opacity-50">{{ timerStore.t.edit.save }}</button>
         </div>
       </div>
     </div>
@@ -238,19 +238,19 @@ async function submitEdit() {
 
       <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
         <h2 class="text-sm font-bold text-gray-800 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-          <Calendar :size="16" class="text-indigo-500" />
+          <Calendar :size="16" class="text-[var(--tt-primary,#4f46e5)]" />
           {{ timerStore.t.dashboard.title }}
         </h2>
-        <button @click="showDetails = false" class="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors cursor-pointer text-gray-500">
+        <button @click="showDetails = false" class="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors cursor-pointer text-gray-500 hover:text-[var(--tt-primary,#4f46e5)]">
           <X :size="18" />
         </button>
       </div>
 
       <div class="p-5 overflow-y-auto custom-scrollbar">
         <div class="grid grid-cols-2 gap-3 mb-6">
-          <div class="bg-indigo-50 dark:bg-indigo-900/10 p-3 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">{{ timerStore.t.dashboard.workToday }}</span>
-            <div class="text-2xl font-mono font-bold text-indigo-700 dark:text-indigo-400 mt-0.5">{{ timerStore.formattedTime }}</div>
+          <div class="bg-[var(--tt-primary-50,#e0e7ff)] dark:bg-[var(--tt-primary-900,#312e81)]/20 p-3 rounded-2xl border border-[var(--tt-primary-100,#c7d2fe)] dark:border-[var(--tt-primary-900,#312e81)]/50">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-[var(--tt-primary,#4f46e5)] dark:text-[var(--tt-primary-light,#818cf8)]">{{ timerStore.t.dashboard.workToday }}</span>
+            <div class="text-2xl font-mono font-bold text-[var(--tt-primary-hover,#4338ca)] dark:text-[var(--tt-primary-light,#818cf8)] mt-0.5">{{ timerStore.formattedTime }}</div>
           </div>
           <div class="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-2xl border border-yellow-100 dark:border-yellow-900/30">
             <span class="text-[9px] font-bold uppercase tracking-wider text-yellow-600 dark:text-yellow-500">{{ timerStore.t.dashboard.pauseTotal }}</span>
@@ -259,47 +259,52 @@ async function submitEdit() {
         </div>
 
         <div class="flex items-center justify-between mb-3 bg-gray-50 dark:bg-gray-800 p-1 rounded-xl border border-gray-100 dark:border-gray-700 select-none">
-          <button @click="timerStore.changeWeek('prev')" class="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg shadow-sm transition-all text-gray-500 hover:text-indigo-600 cursor-pointer">
+          <button @click="timerStore.changeWeek('prev')" class="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg shadow-sm transition-all text-gray-500 hover:text-[var(--tt-primary,#4f46e5)] dark:hover:text-[var(--tt-primary-light,#818cf8)] cursor-pointer">
             <ChevronLeft :size="16" />
           </button>
           <div class="flex flex-col items-center">
             <span class="font-bold text-xs text-gray-700 dark:text-gray-200 uppercase tracking-wide">{{ timerStore.currentHistoryLabel.month }}</span>
             <span class="text-[10px] text-gray-500 font-mono">{{ timerStore.currentHistoryLabel.weekRange }}</span>
           </div>
-          <button @click="timerStore.changeWeek('next')" class="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg shadow-sm transition-all text-gray-500 hover:text-indigo-600 cursor-pointer">
+          <button @click="timerStore.changeWeek('next')" class="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg shadow-sm transition-all text-gray-500 hover:text-[var(--tt-primary,#4f46e5)] dark:hover:text-[var(--tt-primary-light,#818cf8)] cursor-pointer">
             <ChevronRight :size="16" />
           </button>
         </div>
 
         <div class="mb-6 space-y-2 bg-white dark:bg-gray-800/50 p-3 rounded-2xl border border-gray-100 dark:border-gray-700">
           <template v-if="timerStore.visibleWeeklyChart.length > 0">
-            <div v-for="data in timerStore.visibleWeeklyChart" :key="data.day" class="flex items-center gap-3">
+            <button
+              v-for="data in timerStore.visibleWeeklyChart"
+              :key="data.day"
+              @click="timerStore.selectDay(data.date)"
+              class="flex items-center gap-3 w-full text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg px-1 py-0.5 transition-colors"
+            >
               <span class="w-8 text-[10px] font-bold text-gray-400 uppercase">{{ data.day }}</span>
-              <div class="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" :style="{ width: progressWidth(data.hours) }"></div>
-              </div>
+              <span class="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <span class="block h-full bg-[var(--tt-primary,#4f46e5)] rounded-full transition-all duration-500" :style="{ width: progressWidth(data.hours) }"></span>
+              </span>
               <span class="w-12 text-[10px] font-mono text-right text-gray-600 dark:text-gray-400">{{ formatChartTime(data.hours) }}</span>
-            </div>
+            </button>
           </template>
           <div v-else class="text-center text-xs text-gray-400 py-2">{{ timerStore.t.dashboard.emptyWeek }}</div>
         </div>
 
         <button @click="isTimelineExpanded = !isTimelineExpanded" class="flex items-center justify-between w-full mb-2 group cursor-pointer">
           <span class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <BarChart3 :size="16" />
-            {{ timerStore.t.dashboard.timeline }}
+            <BarChart3 :size="16" class="group-hover:text-[var(--tt-primary,#4f46e5)] dark:group-hover:text-[var(--tt-primary-light,#818cf8)] transition-colors" />
+            {{ timerStore.timelineLabel }}
           </span>
-          <span class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 group-hover:text-indigo-500">
+          <span class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 group-hover:text-[var(--tt-primary,#4f46e5)] dark:group-hover:text-[var(--tt-primary-light,#818cf8)]">
             <ChevronUp v-if="isTimelineExpanded" :size="16" />
             <ChevronDown v-else :size="16" />
           </span>
         </button>
 
         <div v-show="isTimelineExpanded" class="relative pl-4 border-l-2 border-gray-200 dark:border-gray-700 ml-2 space-y-4 pb-2 transition-all duration-300 ease-in-out">
-          <div v-if="timerStore.todayRecords.length === 0" class="text-xs text-gray-400 italic py-2">
+          <div v-if="timerStore.sortedRecords.length === 0" class="text-xs text-gray-400 italic py-2">
             {{ timerStore.t.dashboard.emptyTimeline }}
           </div>
-          <div v-for="(record, index) in timerStore.todayRecords" :key="index" class="relative group/item">
+          <div v-for="(record, index) in timerStore.sortedRecords" :key="index" class="relative group/item">
             <div class="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900 ring-1 ring-gray-200 dark:ring-gray-700 transition-all group-hover/item:scale-110 shadow-sm"
                  :class="{
                    'bg-green-500': record.type === 'ENTRY',
@@ -310,7 +315,7 @@ async function submitEdit() {
               <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ getRecordLabel(record.type) }}</span>
               <div class="flex items-center gap-3">
                 <span class="text-xs font-mono font-bold text-gray-500">{{ record.time }}</span>
-                <button @click="openEditModal(record)" class="text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 opacity-0 group-hover/item:opacity-100 transition-opacity cursor-pointer p-0.5">
+                <button @click="openEditModal(record)" class="text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] dark:hover:text-[var(--tt-primary-light,#818cf8)] opacity-0 group-hover/item:opacity-100 transition-opacity cursor-pointer p-0.5">
                   <Pencil :size="12" />
                 </button>
               </div>
@@ -320,7 +325,7 @@ async function submitEdit() {
       </div>
 
       <div class="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-6 py-3 text-center">
-        <button @click="showDetails = false" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 hover:underline cursor-pointer">
+        <button @click="showDetails = false" class="text-xs font-bold text-[var(--tt-primary,#4f46e5)] hover:text-[var(--tt-primary-hover,#4338ca)] dark:text-[var(--tt-primary-light,#818cf8)] hover:underline cursor-pointer">
           {{ timerStore.t.actions.closePanel }}
         </button>
       </div>

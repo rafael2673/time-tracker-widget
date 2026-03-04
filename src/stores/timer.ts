@@ -41,6 +41,15 @@ export const useTimerStore = defineStore('timer', () => {
 
     const historyReferenceDate = ref(new Date())
 
+    const pad = (n: number) => String(n).padStart(2, '0')
+
+    const todayDateStr = (() => {
+        const now = new Date()
+        return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+    })()
+
+    const selectedDate = ref<string>(todayDateStr)
+
     function parseServerDate(val: any): Date {
         if (Array.isArray(val)) {
             return new Date(val[0], val[1] - 1, val[2], val[3], val[4], val[5] || 0)
@@ -112,6 +121,22 @@ export const useTimerStore = defineStore('timer', () => {
 
     const visibleWeeklyChart = computed(() => {
         return weeklyData.value.filter(d => d.hours > 0)
+    })
+
+    const sortedRecords = computed(() => {
+        return [...todayRecords.value].sort((a, b) =>
+            parseServerDate(a.timestamp).getTime() - parseServerDate(b.timestamp).getTime()
+        )
+    })
+
+    const timelineLabel = computed(() => {
+        const parts = selectedDate.value.split('-')
+        const year = Number(parts[0] ?? 0)
+        const month = Number(parts[1] ?? 1)
+        const day = Number(parts[2] ?? 1)
+        const date = new Date(year, month - 1, day)
+        const formatted = date.toLocaleDateString(lang.value, { day: '2-digit', month: '2-digit' })
+        return `${t.value.dashboard.timeline.replace(/\s*\(.*\)/, '')} (${formatted})`
     })
 
     async function changeWeek(direction: 'next' | 'prev') {
@@ -206,7 +231,7 @@ export const useTimerStore = defineStore('timer', () => {
     async function fetchTodayHistory() {
         if (!authStore.token) return
         try {
-            const data: any = await $api('/api/v1/records/today', {
+            const data: any = await $api('/api/v1/records', {
                 headers: { 'Authorization': `Bearer ${authStore.token}` }
             })
             todayRecords.value = data.map((r: any) => ({
@@ -223,7 +248,6 @@ export const useTimerStore = defineStore('timer', () => {
 
     async function fetchWeeklySummary() {
         if (!authStore.token) return
-        const pad = (n: number) => String(n).padStart(2, '0')
         const y = historyReferenceDate.value.getFullYear()
         const m = pad(historyReferenceDate.value.getMonth() + 1)
         const d = pad(historyReferenceDate.value.getDate())
@@ -241,7 +265,6 @@ export const useTimerStore = defineStore('timer', () => {
         if (!authStore.token) return
 
         const now = new Date()
-        const pad = (n: number) => String(n).padStart(2, '0')
         const localDateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
 
         const { lat, lon } = await getGeolocation()
@@ -272,7 +295,6 @@ export const useTimerStore = defineStore('timer', () => {
         const [hours = 0, minutes = 0] = timeStr.split(':').map(Number)
         originalDate.setHours(hours, minutes, 0, 0)
 
-        const pad = (n: number) => String(n).padStart(2, '0')
         const localDateTime = `${originalDate.getFullYear()}-${pad(originalDate.getMonth() + 1)}-${pad(originalDate.getDate())}T${pad(originalDate.getHours())}:${pad(originalDate.getMinutes())}:${pad(originalDate.getSeconds())}`
 
         try {
@@ -307,6 +329,25 @@ export const useTimerStore = defineStore('timer', () => {
         }
     }
 
+    async function selectDay(dateStr: string) {
+        if (!authStore.token) return
+        selectedDate.value = dateStr
+        try {
+            const data: any = await $api(`/api/v1/records?date=${dateStr}`, {
+                headers: { 'Authorization': `Bearer ${authStore.token}` }
+            })
+            todayRecords.value = data.map((r: any) => ({
+                ...r,
+                type: r.recordType,
+                timestamp: r.registeredAt,
+                time: formatClock(r.registeredAt),
+                label: t.value.history[r.recordType as keyof typeof t.value.history] || r.recordType
+            }))
+        } catch {
+            todayRecords.value = []
+        }
+    }
+
     async function registerExit() {
         if (status.value !== 'WORKING' && status.value !== 'PAUSED') return
         if (isProcessing.value) return
@@ -318,18 +359,6 @@ export const useTimerStore = defineStore('timer', () => {
         }
     }
 
-    function stop() {
-        if (intervalId.value) clearInterval(intervalId.value)
-        startTime.value = null
-        elapsedTime.value = 0
-        currentPauseStart.value = null
-        currentPauseElapsed.value = 0
-        accumulatedPauseTime.value = 0
-        todayRecords.value = []
-        status.value = 'IDLE'
-        isProcessing.value = false
-    }
-
     return {
         status,
         lang,
@@ -339,13 +368,15 @@ export const useTimerStore = defineStore('timer', () => {
         nextActionLabel,
         statusLabel,
         todayRecords,
+        sortedRecords,
         currentHistoryLabel,
         visibleWeeklyChart,
+        timelineLabel,
         isProcessing,
         changeWeek,
+        selectDay,
         registerPoint,
         registerExit,
-        stop,
         fetchTodayHistory,
         fetchWeeklySummary,
         editRecord
