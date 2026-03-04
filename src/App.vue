@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import { useAuthStore } from '~/stores/auth'
-import { useTimerStore } from '~/stores/timer'
-import TimerWidget from '~/components/TimerWidget.vue'
-import { translations } from '~/utils/i18n'
+import { useAuthStore } from './stores/auth'
+import { useTimerStore } from './stores/timer'
+import TimerWidget from './components/TimerWidget.vue'
+import { translations } from './utils/i18n'
 
 const props = defineProps({
   rounded: {
