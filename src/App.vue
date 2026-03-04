@@ -4,7 +4,17 @@ import { useAuthStore } from '~/stores/auth'
 import { useTimerStore } from '~/stores/timer'
 import TimerWidget from '~/components/TimerWidget.vue'
 import { translations } from '~/utils/i18n'
-import '../assets/css/main.css'
+
+const props = defineProps({
+  rounded: {
+    type: String,
+    default: '2rem'
+  },
+  compact: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const authStore = useAuthStore()
 const timerStore = useTimerStore()
@@ -35,10 +45,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen w-full flex flex-col items-center justify-start bg-transparent font-sans">
+  <div class="w-full flex flex-col items-center justify-start bg-transparent font-sans">
 
     <div v-if="authStore.isAuthenticated" class="w-full">
-      <TimerWidget rounded="2rem" :compact="true" />
+      <TimerWidget :rounded="props.rounded" :compact="props.compact" />
     </div>
 
     <div v-else-if="isInitializing" class="flex flex-col items-center justify-center p-6 text-indigo-600 dark:text-indigo-400 animate-pulse">
@@ -52,12 +62,3 @@ onMounted(async () => {
 
   </div>
 </template>
-
-<style>
-body {
-  background-color: transparent !important;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-</style>

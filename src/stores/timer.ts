@@ -145,7 +145,7 @@ export const useTimerStore = defineStore('timer', () => {
                 label: t.value.history[r.type as keyof typeof t.value.history] || r.type
             }))
         } catch (error) {
-            throw error
+            console.warn('Ignorando erro ao buscar histórico (dados podem não existir ainda).')
         }
     }
 
@@ -157,7 +157,7 @@ export const useTimerStore = defineStore('timer', () => {
                 headers: { 'Authorization': `Bearer ${authStore.token}` }
             })
         } catch (error) {
-            throw error
+            console.warn('Ignorando erro ao buscar resumo semanal.')
         }
     }
 
@@ -178,28 +178,31 @@ export const useTimerStore = defineStore('timer', () => {
             })
             await fetchTodayHistory()
         } catch (error) {
-            throw error
+            console.error('Erro ao enviar registro para a API:', error)
         }
     }
 
     async function registerPoint() {
-        if (status.value === 'IDLE') {
-            startTime.value = Date.now()
-            status.value = 'WORKING'
-            await sendRecord('ENTRY')
-        } else if (status.value === 'WORKING') {
-            currentPauseStart.value = Date.now()
-            status.value = 'PAUSED'
-            await sendRecord('PAUSE_START')
-        } else if (status.value === 'PAUSED') {
-            accumulatedPauseTime.value += currentPauseElapsed.value
-            currentPauseStart.value = null
-            currentPauseElapsed.value = 0
-            startTime.value = Date.now() - elapsedTime.value
-            status.value = 'WORKING'
-            await sendRecord('PAUSE_END')
+        try {
+            if (status.value === 'IDLE') {
+                startTime.value = Date.now()
+                status.value = 'WORKING'
+                await sendRecord('ENTRY')
+            } else if (status.value === 'WORKING') {
+                currentPauseStart.value = Date.now()
+                status.value = 'PAUSED'
+                await sendRecord('PAUSE_START')
+            } else if (status.value === 'PAUSED') {
+                accumulatedPauseTime.value += currentPauseElapsed.value
+                currentPauseStart.value = null
+                currentPauseElapsed.value = 0
+                startTime.value = Date.now() - elapsedTime.value
+                status.value = 'WORKING'
+                await sendRecord('PAUSE_END')
+            }
+        } finally {
+            startTicker()
         }
-        startTicker()
     }
 
     async function registerExit() {
