@@ -10,7 +10,7 @@ interface TimeRecord {
     id?: number
     type: string
     time: string
-    timestamp: number | string
+    timestamp: any
     label?: string
 }
 
@@ -40,6 +40,19 @@ export const useTimerStore = defineStore('timer', () => {
 
     const historyReferenceDate = ref(new Date())
 
+    function parseServerDate(val: any): Date {
+        if (Array.isArray(val)) {
+            return new Date(val[0], val[1] - 1, val[2], val[3], val[4], val[5] || 0)
+        }
+        if (typeof val === 'string') {
+            const p = val.split(/\D+/)
+            if (p.length >= 5) {
+                return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), Number(p[3]), Number(p[4]), Number(p[5] || 0))
+            }
+        }
+        return new Date(val)
+    }
+
     const formatDuration = (ms: number) => {
         const totalSeconds = Math.floor(ms / 1000)
         const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0')
@@ -48,8 +61,8 @@ export const useTimerStore = defineStore('timer', () => {
         return `${h}:${m}:${s}`
     }
 
-    const formatClock = (timestamp: number | string) => {
-        return new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const formatClock = (timestamp: any) => {
+        return parseServerDate(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     }
 
     const formattedTime = computed(() => formatDuration(elapsedTime.value))
@@ -134,11 +147,11 @@ export const useTimerStore = defineStore('timer', () => {
         let currentStatus: WorkStatus = 'IDLE'
 
         const sortedRecords = [...todayRecords.value].sort((a, b) =>
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            parseServerDate(a.timestamp).getTime() - parseServerDate(b.timestamp).getTime()
         )
 
         for (const record of sortedRecords) {
-            const time = new Date(record.timestamp).getTime()
+            const time = parseServerDate(record.timestamp).getTime()
 
             if (record.type === 'ENTRY') {
                 lastEntryTime = time
@@ -204,24 +217,32 @@ export const useTimerStore = defineStore('timer', () => {
             }))
             rebuildStateFromRecords()
         } catch (error) {
-            console.warn('Ignorando erro ao buscar histórico (dados podem não existir ainda).')
         }
     }
 
     async function fetchWeeklySummary() {
         if (!authStore.token) return
-        const dateStr = historyReferenceDate.value.toISOString().split('T')[0]
+        const pad = (n: number) => String(n).padStart(2, '0')
+        const y = historyReferenceDate.value.getFullYear()
+        const m = pad(historyReferenceDate.value.getMonth() + 1)
+        const d = pad(historyReferenceDate.value.getDate())
+        const dateStr = `${y}-${m}-${d}`
+
         try {
             weeklyData.value = await $api(`/api/v1/summary/weekly?date=${dateStr}`, {
                 headers: { 'Authorization': `Bearer ${authStore.token}` }
             })
         } catch (error) {
-            console.warn(error)
         }
     }
 
     async function sendRecord(type: string) {
         if (!authStore.token) return
+
+        const now = new Date()
+        const pad = (n: number) => String(n).padStart(2, '0')
+        const localDateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+
         const { lat, lon } = await getGeolocation()
         try {
             await $api('/api/v1/records', {
@@ -230,38 +251,29 @@ export const useTimerStore = defineStore('timer', () => {
                 body: {
                     recordType: type,
                     source: 'AUTOMATIC_GPS',
-                    registeredAt: new Date().toISOString(),
+                    registeredAt: localDateTime,
                     latitude: lat,
                     longitude: lon
                 }
             })
             await fetchTodayHistory()
         } catch (error) {
-            console.error('Erro ao enviar registro para a API:', error)
         }
     }
 
     async function registerPoint() {
-        try {
-            if (status.value === 'IDLE') {
-                await sendRecord('ENTRY')
-            } else if (status.value === 'WORKING') {
-                await sendRecord('PAUSE_START')
-            } else if (status.value === 'PAUSED') {
-                await sendRecord('PAUSE_END')
-            }
-        } catch (error) {
-            console.error(error)
+        if (status.value === 'IDLE') {
+            await sendRecord('ENTRY')
+        } else if (status.value === 'WORKING') {
+            await sendRecord('PAUSE_START')
+        } else if (status.value === 'PAUSED') {
+            await sendRecord('PAUSE_END')
         }
     }
 
     async function registerExit() {
         if (status.value !== 'WORKING' && status.value !== 'PAUSED') return
-        try {
-            await sendRecord('EXIT')
-        } catch (error) {
-            console.error(error)
-        }
+        await sendRecord('EXIT')
     }
 
     function stop() {
