@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useAuthStore } from './auth'
-import { translations } from '../utils/i18n'
-import { $api } from '../utils/api'
+import { translations } from '~/utils/i18n'
+import { $api } from '~/utils/api'
 
 export type WorkStatus = 'IDLE' | 'WORKING' | 'PAUSED' | 'FINISHED'
 
@@ -10,7 +10,7 @@ interface TimeRecord {
     id?: number
     type: string
     time: string
-    timestamp: number
+    timestamp: number | string
     label?: string
 }
 
@@ -119,6 +119,62 @@ export const useTimerStore = defineStore('timer', () => {
         }, 1000)
     }
 
+    function rebuildStateFromRecords() {
+        if (!todayRecords.value || todayRecords.value.length === 0) {
+            status.value = 'IDLE'
+            elapsedTime.value = 0
+            accumulatedPauseTime.value = 0
+            return
+        }
+
+        let workTime = 0
+        let pauseTime = 0
+        let lastEntryTime: number | null = null
+        let lastPauseTime: number | null = null
+        let currentStatus: WorkStatus = 'IDLE'
+
+        const sortedRecords = [...todayRecords.value].sort((a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        )
+
+        for (const record of sortedRecords) {
+            const time = new Date(record.timestamp).getTime()
+
+            if (record.type === 'ENTRY') {
+                lastEntryTime = time
+                currentStatus = 'WORKING'
+            } else if (record.type === 'PAUSE_START') {
+                if (lastEntryTime) workTime += (time - lastEntryTime)
+                lastPauseTime = time
+                currentStatus = 'PAUSED'
+            } else if (record.type === 'PAUSE_END') {
+                if (lastPauseTime) pauseTime += (time - lastPauseTime)
+                lastEntryTime = time
+                currentStatus = 'WORKING'
+            } else if (record.type === 'EXIT') {
+                if (lastEntryTime && currentStatus === 'WORKING') {
+                    workTime += (time - lastEntryTime)
+                }
+                currentStatus = 'FINISHED'
+            }
+        }
+
+        status.value = currentStatus
+        accumulatedPauseTime.value = pauseTime
+
+        if (currentStatus === 'WORKING') {
+            startTime.value = Date.now() - workTime
+            startTicker()
+        } else if (currentStatus === 'PAUSED') {
+            elapsedTime.value = workTime
+            currentPauseStart.value = lastPauseTime || Date.now()
+            startTicker()
+        } else if (currentStatus === 'FINISHED') {
+            elapsedTime.value = workTime
+            if (intervalId.value) clearInterval(intervalId.value)
+        }
+    }
+
     async function getGeolocation(): Promise<{ lat: number, lon: number }> {
         return new Promise((resolve) => {
             if (!navigator.geolocation) {
@@ -144,8 +200,9 @@ export const useTimerStore = defineStore('timer', () => {
                 time: formatClock(r.timestamp),
                 label: t.value.history[r.type as keyof typeof t.value.history] || r.type
             }))
+            rebuildStateFromRecords()
         } catch (error) {
-            console.warn('Ignorando erro ao buscar histórico (dados podem não existir ainda).')
+            console.warn(error)
         }
     }
 
@@ -157,7 +214,7 @@ export const useTimerStore = defineStore('timer', () => {
                 headers: { 'Authorization': `Bearer ${authStore.token}` }
             })
         } catch (error) {
-            console.warn('Ignorando erro ao buscar resumo semanal.')
+            console.warn(error)
         }
     }
 
@@ -178,38 +235,31 @@ export const useTimerStore = defineStore('timer', () => {
             })
             await fetchTodayHistory()
         } catch (error) {
-            console.error('Erro ao enviar registro para a API:', error)
+            throw error
         }
     }
 
     async function registerPoint() {
         try {
             if (status.value === 'IDLE') {
-                startTime.value = Date.now()
-                status.value = 'WORKING'
                 await sendRecord('ENTRY')
             } else if (status.value === 'WORKING') {
-                currentPauseStart.value = Date.now()
-                status.value = 'PAUSED'
                 await sendRecord('PAUSE_START')
             } else if (status.value === 'PAUSED') {
-                accumulatedPauseTime.value += currentPauseElapsed.value
-                currentPauseStart.value = null
-                currentPauseElapsed.value = 0
-                startTime.value = Date.now() - elapsedTime.value
-                status.value = 'WORKING'
                 await sendRecord('PAUSE_END')
             }
-        } finally {
-            startTicker()
+        } catch (error) {
+            console.error(error)
         }
     }
 
     async function registerExit() {
         if (status.value !== 'WORKING' && status.value !== 'PAUSED') return
-        clearInterval(intervalId.value)
-        status.value = 'FINISHED'
-        await sendRecord('EXIT')
+        try {
+            await sendRecord('EXIT')
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     function stop() {
