@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste do Web Component</title>
+    <style>
+        body {
+            background-color: #f3f4f6; /* Fundo cinza claro para destacar o widget */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 50px;
+            font-family: sans-serif;
+        }
+        .host-container {
+            width: 350px; /* Simulando a largura de um menu dropdown */
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    window.AP101_CONFIG = {
+        apiKey: "TESTE_DEV_123",
+        user: {
+            email: "rafael@intersistemas.srv.br",
+            name: "Rafa Franco"
+        }
+    };
+</script>
+
+<div class="host-container">
+    <time-tracker compact="true" rounded="1rem"></time-tracker>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

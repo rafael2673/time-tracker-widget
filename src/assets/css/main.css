@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #6366f1;
+    --color-primary-hover: #4f46e5;
+    --font-family-sans: 'Inter', system-ui, sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+    @apply bg-gray-100 text-gray-900 transition-colors duration-300;
+}
+
+:root.dark body {
+    @apply bg-gray-950 text-gray-100;
+}
