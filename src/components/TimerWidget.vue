@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useTimerStore } from '~/stores/timer'
-import { useAuthStore } from '~/stores/auth'
-import { useTheme } from '~/composables/useTheme'
+import { useTimerStore } from '../stores/timer'
+import { useAuthStore } from '../stores/auth'
+import { useTheme } from '../composables/useTheme'
 import { Play, LogOut, Moon, Sun, Clock, Square, Coffee, Calendar, X, BarChart3, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Pause } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -48,8 +48,21 @@ function getRecordLabel(type: string) {
   return map[type] || type
 }
 
+// Converte decimais (ex: 0.1) para formato de horas e minutos (ex: 00:06)
+const formatChartTime = (decimalHours: number) => {
+  if (!decimalHours) return '00:00'
+  const h = Math.floor(decimalHours)
+  const m = Math.round((decimalHours - h) * 60)
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+}
+
 const progressWidth = computed(() => {
-  return (value: number) => `${Math.min(value * 10, 100)}%`
+  return (value: number) => {
+    if (value <= 0) return '0%'
+    // Garante uma largura mínima de 5% se o valor for muito baixo (ex: 6 minutos), para a barra ficar visível
+    const calculatedWidth = (value / 8) * 100 // Assumindo base de 8 horas
+    return `${Math.max(calculatedWidth, 5)}%`
+  }
 })
 
 const mainDisplay = computed(() => {
@@ -221,7 +234,7 @@ const secondaryDisplay = computed(() => {
                   <div class="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" :style="{ width: progressWidth(data.hours) }"></div>
                   </div>
-                  <span class="w-12 text-[10px] font-mono text-right text-gray-600 dark:text-gray-400">{{ Math.floor(data.hours).toString().padStart(2, '0') }}:00</span>
+                  <span class="w-12 text-[10px] font-mono text-right text-gray-600 dark:text-gray-400">{{ formatChartTime(data.hours) }}</span>
                 </div>
               </template>
               <div v-else class="text-center text-xs text-gray-400 py-2">Sem registros nesta semana.</div>
