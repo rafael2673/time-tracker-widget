@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useAuthStore } from './auth'
-import { translations } from '~/utils/i18n'
-import { $api } from '~/utils/api'
+import { translations } from '../utils/i18n'
+import { $api } from '../utils/api'
 
 export type WorkStatus = 'IDLE' | 'WORKING' | 'PAUSED' | 'FINISHED'
 
@@ -197,12 +197,14 @@ export const useTimerStore = defineStore('timer', () => {
             })
             todayRecords.value = data.map((r: any) => ({
                 ...r,
-                time: formatClock(r.timestamp),
-                label: t.value.history[r.type as keyof typeof t.value.history] || r.type
+                type: r.recordType,
+                timestamp: r.registeredAt,
+                time: formatClock(r.registeredAt),
+                label: t.value.history[r.recordType as keyof typeof t.value.history] || r.recordType
             }))
             rebuildStateFromRecords()
         } catch (error) {
-            console.warn(error)
+            console.warn('Ignorando erro ao buscar histórico (dados podem não existir ainda).')
         }
     }
 
@@ -226,16 +228,16 @@ export const useTimerStore = defineStore('timer', () => {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${authStore.token}` },
                 body: {
-                    type,
+                    recordType: type,
                     source: 'AUTOMATIC_GPS',
-                    timestamp: new Date().toISOString(),
+                    registeredAt: new Date().toISOString(),
                     latitude: lat,
                     longitude: lon
                 }
             })
             await fetchTodayHistory()
         } catch (error) {
-            throw error
+            console.error('Erro ao enviar registro para a API:', error)
         }
     }
 
