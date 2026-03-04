@@ -11,7 +11,7 @@ const props = defineProps({
     default: '2rem'
   },
   compact: {
-    type: Boolean,
+    type: [Boolean, String],
     default: false
   }
 })
@@ -23,6 +23,10 @@ const hasError = ref(false)
 const errorMessage = ref('')
 
 const t = computed(() => translations['pt'])
+
+const isCompactMode = computed(() => {
+  return props.compact === true || props.compact === 'true'
+})
 
 onMounted(async () => {
   if (typeof window !== 'undefined' && window.AP101_CONFIG) {
@@ -47,15 +51,15 @@ onMounted(async () => {
 <template>
   <div class="w-full flex flex-col items-center justify-start bg-transparent font-sans">
 
-    <div v-if="authStore.isAuthenticated" class="w-full">
-      <TimerWidget :rounded="props.rounded" :compact="props.compact" />
+    <div v-if="!isInitializing && authStore.isAuthenticated && !hasError" key="widget" class="w-full">
+      <TimerWidget :rounded="props.rounded" :compact="isCompactMode" />
     </div>
 
-    <div v-else-if="isInitializing" class="flex flex-col items-center justify-center p-6 text-indigo-600 dark:text-indigo-400 animate-pulse">
+    <div v-else-if="isInitializing" key="loading" class="flex flex-col items-center justify-center p-6 text-indigo-600 dark:text-indigo-400 animate-pulse">
       <span class="text-xs font-bold uppercase tracking-widest">{{ t.loading }}</span>
     </div>
 
-    <div v-else-if="hasError" class="flex flex-col items-center justify-center p-4 text-center">
+    <div v-else-if="hasError" key="error" class="flex flex-col items-center justify-center p-4 text-center">
       <div class="text-red-500 font-bold text-xs mb-1">AP101 Tracker</div>
       <div class="text-gray-400 text-[10px]">{{ errorMessage }}</div>
     </div>

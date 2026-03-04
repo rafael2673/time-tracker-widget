@@ -7,7 +7,9 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     vue({
-      customElement: true
+      features: {
+        customElement: true
+      }
     })
   ],
   build: {
@@ -28,6 +30,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '~': resolve(__dirname, './src')
+    }
+  },
+  server: {
+    port: 5173,
+    strictPort: true,
+    hmr: {
+      port: 5173
     }
   }
 })

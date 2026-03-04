@@ -8,7 +8,7 @@ const pinia = createPinia()
 const WidgetWrapper = defineCustomElement({
     styles: [styles],
     props: {
-        compact: { type: Boolean, default: false },
+        compact: { type: [Boolean, String], default: false },
         rounded: { type: String, default: '2rem' }
     },
     setup(props) {

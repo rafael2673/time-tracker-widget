@@ -36,6 +36,7 @@ export const useTimerStore = defineStore('timer', () => {
     const weeklyData = ref<DailySummary[]>([])
 
     const intervalId = ref<any>(null)
+    const isProcessing = ref(false)
     const authStore = useAuthStore()
 
     const historyReferenceDate = ref(new Date())
@@ -113,11 +114,11 @@ export const useTimerStore = defineStore('timer', () => {
         return weeklyData.value.filter(d => d.hours > 0)
     })
 
-    function changeWeek(direction: 'next' | 'prev') {
+    async function changeWeek(direction: 'next' | 'prev') {
         const newDate = new Date(historyReferenceDate.value)
         newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7))
         historyReferenceDate.value = newDate
-        fetchWeeklySummary()
+        await fetchWeeklySummary()
     }
 
     function startTicker() {
@@ -291,18 +292,30 @@ export const useTimerStore = defineStore('timer', () => {
     }
 
     async function registerPoint() {
-        if (status.value === 'IDLE') {
-            await sendRecord('ENTRY')
-        } else if (status.value === 'WORKING') {
-            await sendRecord('PAUSE_START')
-        } else if (status.value === 'PAUSED') {
-            await sendRecord('PAUSE_END')
+        if (isProcessing.value) return
+        isProcessing.value = true
+        try {
+            if (status.value === 'IDLE') {
+                await sendRecord('ENTRY')
+            } else if (status.value === 'WORKING') {
+                await sendRecord('PAUSE_START')
+            } else if (status.value === 'PAUSED') {
+                await sendRecord('PAUSE_END')
+            }
+        } finally {
+            isProcessing.value = false
         }
     }
 
     async function registerExit() {
         if (status.value !== 'WORKING' && status.value !== 'PAUSED') return
-        await sendRecord('EXIT')
+        if (isProcessing.value) return
+        isProcessing.value = true
+        try {
+            await sendRecord('EXIT')
+        } finally {
+            isProcessing.value = false
+        }
     }
 
     function stop() {
@@ -314,6 +327,7 @@ export const useTimerStore = defineStore('timer', () => {
         accumulatedPauseTime.value = 0
         todayRecords.value = []
         status.value = 'IDLE'
+        isProcessing.value = false
     }
 
     return {
@@ -326,6 +340,7 @@ export const useTimerStore = defineStore('timer', () => {
         todayRecords,
         currentHistoryLabel,
         visibleWeeklyChart,
+        isProcessing,
         changeWeek,
         registerPoint,
         registerExit,
