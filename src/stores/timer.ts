@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { useAuthStore } from './auth'
-import { translations } from '~/utils/i18n'
+import {defineStore} from 'pinia'
+import {computed, ref} from 'vue'
+import {useAuthStore} from './auth'
+import {translations} from '~/utils/i18n'
 
 export type WorkStatus = 'IDLE' | 'WORKING' | 'PAUSED' | 'FINISHED'
 
@@ -152,10 +152,9 @@ export const useTimerStore = defineStore('timer', () => {
         if (!authStore.token) return
         const dateStr = historyReferenceDate.value.toISOString().split('T')[0]
         try {
-            const data: any = await $fetch(`/api/v1/summary/weekly?date=${dateStr}`, {
-                headers: { 'Authorization': `Bearer ${authStore.token}` }
+            weeklyData.value = await $fetch(`/api/v1/summary/weekly?date=${dateStr}`, {
+                headers: {'Authorization': `Bearer ${authStore.token}`}
             })
-            weeklyData.value = data
         } catch (e) {
             console.error('API Error (Weekly)', e)
         }
