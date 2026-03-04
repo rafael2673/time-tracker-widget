@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { $api } from '../utils/api'
 
 interface User {
     email: string
@@ -24,12 +25,11 @@ export const useAuthStore = defineStore('auth', () => {
         const config = window.AP101_CONFIG
 
         if (!config || !config.apiKey || !config.user) {
-            console.error('AP101 Configuration missing')
             return false
         }
 
         try {
-            const response: any = await $fetch('/api/v1/auth/widget-login', {
+            const response: any = await $api('/api/v1/auth/widget-login', {
                 method: 'POST',
                 body: {
                     apiKey: config.apiKey,
@@ -44,7 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
                 return true
             }
         } catch (error) {
-            console.error('Widget authentication failed', error)
+            throw error
         }
 
         return false

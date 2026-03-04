@@ -1,4 +1,5 @@
 export interface AP101Config {
+    apiUrl?: string
     apiKey: string
     user: {
         email: string

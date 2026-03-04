@@ -1,7 +1,8 @@
-import {defineStore} from 'pinia'
-import {computed, ref} from 'vue'
-import {useAuthStore} from './auth'
-import {translations} from '~/utils/i18n'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import { useAuthStore } from './auth'
+import { translations } from '../utils/i18n'
+import { $api } from '../utils/api'
 
 export type WorkStatus = 'IDLE' | 'WORKING' | 'PAUSED' | 'FINISHED'
 
@@ -135,7 +136,7 @@ export const useTimerStore = defineStore('timer', () => {
     async function fetchTodayHistory() {
         if (!authStore.token) return
         try {
-            const data: any = await $fetch('/api/v1/records/today', {
+            const data: any = await $api('/api/v1/records/today', {
                 headers: { 'Authorization': `Bearer ${authStore.token}` }
             })
             todayRecords.value = data.map((r: any) => ({
@@ -143,8 +144,8 @@ export const useTimerStore = defineStore('timer', () => {
                 time: formatClock(r.timestamp),
                 label: t.value.history[r.type as keyof typeof t.value.history] || r.type
             }))
-        } catch (e) {
-            console.error('API Error (History)', e)
+        } catch (error) {
+            throw error
         }
     }
 
@@ -152,11 +153,11 @@ export const useTimerStore = defineStore('timer', () => {
         if (!authStore.token) return
         const dateStr = historyReferenceDate.value.toISOString().split('T')[0]
         try {
-            weeklyData.value = await $fetch(`/api/v1/summary/weekly?date=${dateStr}`, {
-                headers: {'Authorization': `Bearer ${authStore.token}`}
+            weeklyData.value = await $api(`/api/v1/summary/weekly?date=${dateStr}`, {
+                headers: { 'Authorization': `Bearer ${authStore.token}` }
             })
-        } catch (e) {
-            console.error('API Error (Weekly)', e)
+        } catch (error) {
+            throw error
         }
     }
 
@@ -164,7 +165,7 @@ export const useTimerStore = defineStore('timer', () => {
         if (!authStore.token) return
         const { lat, lon } = await getGeolocation()
         try {
-            await $fetch('/api/v1/records', {
+            await $api('/api/v1/records', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${authStore.token}` },
                 body: {
@@ -176,8 +177,8 @@ export const useTimerStore = defineStore('timer', () => {
                 }
             })
             await fetchTodayHistory()
-        } catch (e) {
-            console.error(e)
+        } catch (error) {
+            throw error
         }
     }
 
