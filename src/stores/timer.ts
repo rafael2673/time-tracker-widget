@@ -175,8 +175,8 @@ export const useTimerStore = defineStore('timer', () => {
         status.value = currentStatus
         accumulatedPauseTime.value = pauseTime
 
-        if (currentStatus === 'WORKING') {
-            startTime.value = Date.now() - workTime
+        if (currentStatus === 'WORKING' && lastEntryTime) {
+            startTime.value = lastEntryTime - workTime
             startTicker()
         } else if (currentStatus === 'PAUSED') {
             elapsedTime.value = workTime
