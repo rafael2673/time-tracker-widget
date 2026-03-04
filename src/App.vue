@@ -6,14 +6,12 @@ import TimerWidget from './components/TimerWidget.vue'
 import { translations } from './utils/i18n'
 
 const props = defineProps({
-  rounded: {
-    type: String,
-    default: '2rem'
-  },
-  compact: {
-    type: [Boolean, String],
-    default: false
-  }
+  rounded: { type: String, default: '2rem' },
+  compact: { type: [Boolean, String], default: false },
+  apiUrl: { type: String },
+  lang: { type: String, default: 'pt' },
+  email: { type: String },
+  apiKey: { type: String }
 })
 
 const authStore = useAuthStore()
@@ -22,15 +20,26 @@ const isInitializing = ref(true)
 const hasError = ref(false)
 const errorMessage = ref('')
 
-const t = computed(() => translations['pt'])
+const isCompactMode = computed(() => props.compact === true || props.compact === 'true')
 
-const isCompactMode = computed(() => {
-  return props.compact === true || props.compact === 'true'
-})
+const currentLang = computed(() => (props.lang === 'en' ? 'en' : 'pt'))
+const t = computed(() => translations[currentLang.value])
 
 onMounted(async () => {
-  if (typeof window !== 'undefined' && window.AP101_CONFIG) {
-    const success = await authStore.loginViaWidget()
+  const legacyConfig = (window as any).AP101_CONFIG || {}
+  const targetEmail = props.email || legacyConfig?.user?.email
+  const targetApiKey = props.apiKey || legacyConfig.apiKey
+  const targetName = legacyConfig?.user?.name
+
+  ;(window as any).__TIME_TRACKER_CONFIG__ = {
+    apiUrl: props.apiUrl || legacyConfig.apiUrl,
+    lang: currentLang.value
+  }
+
+  timerStore.lang = currentLang.value
+
+  if (targetEmail && targetApiKey) {
+    const success = await authStore.loginViaWidget(targetEmail, targetApiKey, targetName)
 
     if (success) {
       await timerStore.fetchTodayHistory()

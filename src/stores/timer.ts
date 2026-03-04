@@ -22,7 +22,7 @@ interface DailySummary {
 
 export const useTimerStore = defineStore('timer', () => {
     const status = ref<WorkStatus>('IDLE')
-    const lang = ref<'pt'>('pt')
+    const lang = ref<'pt' | 'en'>('pt')
     const t = computed(() => translations[lang.value])
 
     const startTime = ref<number | null>(null)
