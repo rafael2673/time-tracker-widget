@@ -7,7 +7,7 @@ import { $api } from '../utils/api'
 export type WorkStatus = 'IDLE' | 'WORKING' | 'PAUSED' | 'FINISHED'
 
 interface TimeRecord {
-    id?: number
+    id?: string
     type: string
     time: string
     timestamp: any
@@ -261,6 +261,35 @@ export const useTimerStore = defineStore('timer', () => {
         }
     }
 
+    async function editRecord(id: string, timeStr: string, justification: string) {
+        if (!authStore.token) return
+
+        const record = todayRecords.value.find(r => r.id === id)
+        if (!record) return
+
+        const originalDate = parseServerDate(record.timestamp)
+        const [hours = 0, minutes = 0] = timeStr.split(':').map(Number)
+        originalDate.setHours(hours, minutes, 0, 0)
+
+        const pad = (n: number) => String(n).padStart(2, '0')
+        const localDateTime = `${originalDate.getFullYear()}-${pad(originalDate.getMonth() + 1)}-${pad(originalDate.getDate())}T${pad(originalDate.getHours())}:${pad(originalDate.getMinutes())}:${pad(originalDate.getSeconds())}`
+
+        try {
+            await $api(`/api/v1/records/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${authStore.token}` },
+                body: {
+                    registeredAt: localDateTime,
+                    justification: justification
+                }
+            })
+            await fetchTodayHistory()
+            await fetchWeeklySummary()
+        } catch (error) {
+            throw error
+        }
+    }
+
     async function registerPoint() {
         if (status.value === 'IDLE') {
             await sendRecord('ENTRY')
@@ -302,6 +331,7 @@ export const useTimerStore = defineStore('timer', () => {
         registerExit,
         stop,
         fetchTodayHistory,
-        fetchWeeklySummary
+        fetchWeeklySummary,
+        editRecord
     }
 })

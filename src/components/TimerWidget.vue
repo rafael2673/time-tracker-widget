@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useTimerStore } from '../stores/timer'
 import { useAuthStore } from '../stores/auth'
 import { useTheme } from '../composables/useTheme'
-import { Play, LogOut, Moon, Sun, Clock, Square, Coffee, Calendar, X, BarChart3, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Pause } from 'lucide-vue-next'
+import { Play, LogOut, Moon, Sun, Clock, Square, Coffee, Calendar, X, BarChart3, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Pause, Pencil } from 'lucide-vue-next'
 
 const props = defineProps({
   rounded: {
@@ -23,6 +23,12 @@ const { isDark, toggleTheme } = useTheme()
 const showDetails = ref(false)
 const isTimelineExpanded = ref(true)
 const teleportReady = ref(!!document.getElementById('time-tracker-teleport'))
+
+const editingRecordId = ref<string | null>(null)
+const editTime = ref('')
+const editJustification = ref('')
+const editError = ref('')
+const isSubmittingEdit = ref(false)
 
 onMounted(() => {
   if (!document.getElementById('time-tracker-teleport')) {
@@ -48,7 +54,6 @@ function getRecordLabel(type: string) {
   return map[type] || type
 }
 
-// Converte decimais (ex: 0.1) para formato de horas e minutos (ex: 00:06)
 const formatChartTime = (decimalHours: number) => {
   if (!decimalHours) return '00:00'
   const h = Math.floor(decimalHours)
@@ -59,8 +64,7 @@ const formatChartTime = (decimalHours: number) => {
 const progressWidth = computed(() => {
   return (value: number) => {
     if (value <= 0) return '0%'
-    // Garante uma largura mínima de 5% se o valor for muito baixo (ex: 6 minutos), para a barra ficar visível
-    const calculatedWidth = (value / 8) * 100 // Assumindo base de 8 horas
+    const calculatedWidth = (value / 8) * 100
     return `${Math.max(calculatedWidth, 5)}%`
   }
 })
@@ -96,6 +100,38 @@ const secondaryDisplay = computed(() => {
     icon: Coffee
   }
 })
+
+function openEditModal(record: any) {
+  editingRecordId.value = record.id
+  editTime.value = record.time
+  editJustification.value = ''
+  editError.value = ''
+}
+
+function closeEditModal() {
+  editingRecordId.value = null
+}
+
+async function submitEdit() {
+  if (!editJustification.value.trim()) {
+    editError.value = 'A justificativa é obrigatória para alterar o horário.'
+    return
+  }
+  if (!editTime.value) {
+    editError.value = 'O horário inválido.'
+    return
+  }
+
+  isSubmittingEdit.value = true
+  try {
+    await timerStore.editRecord(editingRecordId.value!, editTime.value, editJustification.value)
+    closeEditModal()
+  } catch (e) {
+    editError.value = 'Erro ao se comunicar com o servidor.'
+  } finally {
+    isSubmittingEdit.value = false
+  }
+}
 </script>
 
 <template>
@@ -190,6 +226,34 @@ const secondaryDisplay = computed(() => {
 
     <Teleport to="#time-tracker-teleport" :disabled="!teleportReady">
       <div v-if="showDetails" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 font-sans">
+
+        <div v-if="editingRecordId" class="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+          <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl w-full max-w-xs p-5">
+            <h3 class="text-sm font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+              <Clock :size="16" class="text-indigo-500" />
+              Editar Horário
+            </h3>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Novo Horário</label>
+                <input type="time" v-model="editTime" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Justificativa (Obrigatória)</label>
+                <textarea v-model="editJustification" rows="3" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none placeholder-gray-400" placeholder="Ex: Esqueci de bater o ponto na hora..."></textarea>
+                <span v-if="editError" class="text-[10px] font-bold text-red-500 mt-1 block">{{ editError }}</span>
+              </div>
+            </div>
+
+            <div class="flex gap-2 mt-5">
+              <button @click="closeEditModal" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-50">Cancelar</button>
+              <button @click="submitEdit" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 cursor-pointer disabled:opacity-50">Salvar</button>
+            </div>
+          </div>
+        </div>
+
         <div class="bg-white dark:bg-gray-900 w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-200 dark:border-gray-800" :style="{ borderRadius: props.rounded }">
 
           <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
@@ -255,8 +319,8 @@ const secondaryDisplay = computed(() => {
               <div v-if="timerStore.todayRecords.length === 0" class="text-xs text-gray-400 italic py-2">
                 {{ timerStore.t.dashboard.emptyTimeline }}
               </div>
-              <div v-for="(record, index) in timerStore.todayRecords" :key="index" class="relative group">
-                <div class="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900 ring-1 ring-gray-200 dark:ring-gray-700 transition-all group-hover:scale-110 shadow-sm"
+              <div v-for="(record, index) in timerStore.todayRecords" :key="index" class="relative group/item">
+                <div class="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900 ring-1 ring-gray-200 dark:ring-gray-700 transition-all group-hover/item:scale-110 shadow-sm"
                      :class="{
                        'bg-green-500': record.type === 'ENTRY',
                        'bg-yellow-500': record.type.includes('PAUSE'),
@@ -264,7 +328,12 @@ const secondaryDisplay = computed(() => {
                      }"></div>
                 <div class="flex justify-between items-center px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ getRecordLabel(record.type) }}</span>
-                  <span class="text-xs font-mono font-bold text-gray-500">{{ record.time }}</span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs font-mono font-bold text-gray-500">{{ record.time }}</span>
+                    <button @click="openEditModal(record)" class="text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 opacity-0 group-hover/item:opacity-100 transition-opacity cursor-pointer p-0.5">
+                      <Pencil :size="12" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
