@@ -11,7 +11,7 @@ const WidgetWrapper = defineCustomElement({
         compact: { type: [Boolean, String], default: false },
         rounded: { type: String, default: '2rem' },
         apiUrl: { type: String },
-        lang: { type: String, default: 'pt' },
+        lang: { type: String, default: 'pt-BR' },
         email: { type: String },
         apiKey: { type: String }
     },

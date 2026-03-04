@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Teste do Web Component</title>
+    <title>Time Tracker</title>
     <style>
         body {
-            background-color: #f3f4f6; /* Fundo cinza claro para destacar o widget */
+            background-color: #f3f4f6;
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -14,24 +14,21 @@
             font-family: sans-serif;
         }
         .host-container {
-            width: 350px; /* Simulando a largura de um menu dropdown */
+            width: 350px;
         }
     </style>
 </head>
 <body>
 
-<script>
-    window.AP101_CONFIG = {
-        apiKey: "TESTE_DEV_123",
-        user: {
-            email: "rafael@intersistemas.srv.br",
-            name: "Rafael Franco"
-        }
-    };
-</script>
-
 <div class="host-container">
-    <time-tracker compact="true" rounded="1rem"></time-tracker>
+    <time-tracker
+            compact="true"
+            rounded="1rem"
+            api-url="http://localhost:8080"
+            lang="en"
+            email="rafael@intersistemas.srv.br"
+            api-key="TESTE_DEV_123">
+    </time-tracker>
 </div>
 
 <script type="module" src="/src/main.ts"></script>

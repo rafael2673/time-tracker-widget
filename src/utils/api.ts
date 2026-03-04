@@ -9,6 +9,6 @@ export const $api = ofetch.create({
         }
 
         options.headers = new Headers(options.headers)
-        options.headers.set('Accept-Language', config.lang || 'pt')
+        options.headers.set('Accept-Language', config.lang || 'pt-BR')
     }
 })

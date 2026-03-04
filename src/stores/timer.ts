@@ -22,7 +22,7 @@ interface DailySummary {
 
 export const useTimerStore = defineStore('timer', () => {
     const status = ref<WorkStatus>('IDLE')
-    const lang = ref<'pt' | 'en'>('pt')
+    const lang = ref<'pt-BR' | 'en'>('pt-BR')
     const t = computed(() => translations[lang.value])
 
     const startTime = ref<number | null>(null)
@@ -63,7 +63,7 @@ export const useTimerStore = defineStore('timer', () => {
     }
 
     const formatClock = (timestamp: any) => {
-        return parseServerDate(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        return parseServerDate(timestamp).toLocaleTimeString(lang.value, { hour: '2-digit', minute: '2-digit' })
     }
 
     const formattedTime = computed(() => formatDuration(elapsedTime.value))
@@ -100,9 +100,9 @@ export const useTimerStore = defineStore('timer', () => {
         const end = new Date(start)
         end.setDate(start.getDate() + 6)
 
-        const monthName = start.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-        const startStr = start.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '')
-        const endStr = end.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '')
+        const monthName = start.toLocaleDateString(lang.value, { month: 'long', year: 'numeric' })
+        const startStr = start.toLocaleDateString(lang.value, { day: 'numeric', month: 'short' }).replace('.', '')
+        const endStr = end.toLocaleDateString(lang.value, { day: 'numeric', month: 'short' }).replace('.', '')
 
         return {
             month: monthName.charAt(0).toUpperCase() + monthName.slice(1),
@@ -332,6 +332,7 @@ export const useTimerStore = defineStore('timer', () => {
 
     return {
         status,
+        lang,
         t,
         formattedTime,
         formattedTotalPause,

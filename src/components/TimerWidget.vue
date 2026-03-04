@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useTimerStore } from '~/stores/timer'
-import { useAuthStore } from '~/stores/auth'
-import { useTheme } from '~/composables/useTheme'
-import { Play, LogOut, Moon, Sun, Clock, Square, Coffee, Calendar, X, BarChart3, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Pause, Pencil, Loader2 } from 'lucide-vue-next'
+import { useTimerStore } from '../stores/timer'
+import { useTheme } from '../composables/useTheme'
+import { Play, Moon, Sun, Clock, Square, Coffee, Calendar, X, BarChart3, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Pause, Pencil, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps({
   rounded: {
@@ -17,7 +16,6 @@ const props = defineProps({
 })
 
 const timerStore = useTimerStore()
-const authStore = useAuthStore()
 const { isDark, toggleTheme } = useTheme()
 
 const showDetails = ref(false)
@@ -28,11 +26,6 @@ const editTime = ref('')
 const editJustification = ref('')
 const editError = ref('')
 const isSubmittingEdit = ref(false)
-
-function handleLogout() {
-  timerStore.stop()
-  authStore.logout()
-}
 
 function getRecordLabel(type: string) {
   const map: Record<string, string> = timerStore.t.history
@@ -57,14 +50,14 @@ const progressWidth = computed(() => {
 const mainDisplay = computed(() => {
   if (timerStore.status === 'PAUSED') {
     return {
-      label: 'Tempo de Pausa',
+      label: timerStore.t.status.paused,
       time: timerStore.formattedTotalPause,
       colorClass: 'text-yellow-500 dark:text-yellow-400',
       icon: Coffee
     }
   }
   return {
-    label: 'Tempo de Trabalho',
+    label: timerStore.t.status.working,
     time: timerStore.formattedTime,
     colorClass: 'text-indigo-600 dark:text-indigo-400',
     icon: Clock
@@ -74,13 +67,13 @@ const mainDisplay = computed(() => {
 const secondaryDisplay = computed(() => {
   if (timerStore.status === 'PAUSED') {
     return {
-      label: 'Trabalho',
+      label: timerStore.t.status.working,
       time: timerStore.formattedTime,
       icon: Clock
     }
   }
   return {
-    label: 'Pausa',
+    label: timerStore.t.status.paused,
     time: timerStore.formattedTotalPause,
     icon: Coffee
   }
@@ -99,11 +92,11 @@ function closeEditModal() {
 
 async function submitEdit() {
   if (!editJustification.value.trim()) {
-    editError.value = 'A justificativa é obrigatória para alterar o horário.'
+    editError.value = timerStore.t.edit.errorJustification
     return
   }
   if (!editTime.value) {
-    editError.value = 'O horário inválido.'
+    editError.value = timerStore.t.edit.errorTime
     return
   }
 
@@ -111,8 +104,8 @@ async function submitEdit() {
   try {
     await timerStore.editRecord(editingRecordId.value!, editTime.value, editJustification.value)
     closeEditModal()
-  } catch (e) {
-    editError.value = 'Erro ao se comunicar com o servidor.'
+  } catch (e: any) {
+    editError.value = e?.response?._data?.error || timerStore.t.edit.errorServer
   } finally {
     isSubmittingEdit.value = false
   }
@@ -199,15 +192,11 @@ async function submitEdit() {
       </div>
 
       <div v-else class="text-green-500 font-bold text-[10px] uppercase tracking-wide text-right pr-2">
-        Jornada<br>Encerrada
+        {{ timerStore.t.status.finished }}
       </div>
     </div>
 
-    <div class="flex items-center justify-between border-t border-gray-50 dark:border-gray-800/50" :class="compact ? 'mt-1 pt-0.5' : 'mt-2 pt-1.5'">
-      <button @click="handleLogout" class="hover:text-red-500 text-[10px] text-gray-300 hover:bg-red-50 rounded transition-colors flex items-center gap-1 cursor-pointer" :class="compact ? 'p-0.5' : 'p-1'">
-        <LogOut :size="10" /> Sair
-      </button>
-
+    <div class="flex items-center justify-end border-t border-gray-50 dark:border-gray-800/50" :class="compact ? 'mt-1 pt-0.5' : 'mt-2 pt-1.5'">
       <button @click="showDetails = true"
               class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer font-medium hover:bg-gray-50 dark:hover:bg-gray-800" :class="compact ? 'py-0.5 px-1.5' : 'py-1 px-2 rounded-full'">
         <span>{{ timerStore.t.actions.openPanel }}</span>
@@ -222,25 +211,25 @@ async function submitEdit() {
       <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl w-full max-w-xs p-5">
         <h3 class="text-sm font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
           <Clock :size="16" class="text-indigo-500" />
-          Editar Horário
+          {{ timerStore.t.edit.title }}
         </h3>
 
         <div class="space-y-4">
           <div>
-            <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Novo Horário</label>
+            <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">{{ timerStore.t.edit.newTime }}</label>
             <input type="time" v-model="editTime" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
 
           <div>
-            <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Justificativa (Obrigatória)</label>
-            <textarea v-model="editJustification" rows="3" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none placeholder-gray-400" placeholder="Ex: Esqueci de bater o ponto na hora..."></textarea>
+            <label class="block text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">{{ timerStore.t.edit.justification }}</label>
+            <textarea v-model="editJustification" rows="3" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none placeholder-gray-400" :placeholder="timerStore.t.edit.placeholder"></textarea>
             <span v-if="editError" class="text-[10px] font-bold text-red-500 mt-1 block">{{ editError }}</span>
           </div>
         </div>
 
         <div class="flex gap-2 mt-5">
-          <button @click="closeEditModal" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-50">Cancelar</button>
-          <button @click="submitEdit" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 cursor-pointer disabled:opacity-50">Salvar</button>
+          <button @click="closeEditModal" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-50">{{ timerStore.t.edit.cancel }}</button>
+          <button @click="submitEdit" :disabled="isSubmittingEdit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 cursor-pointer disabled:opacity-50">{{ timerStore.t.edit.save }}</button>
         </div>
       </div>
     </div>
@@ -292,7 +281,7 @@ async function submitEdit() {
               <span class="w-12 text-[10px] font-mono text-right text-gray-600 dark:text-gray-400">{{ formatChartTime(data.hours) }}</span>
             </div>
           </template>
-          <div v-else class="text-center text-xs text-gray-400 py-2">Sem registros nesta semana.</div>
+          <div v-else class="text-center text-xs text-gray-400 py-2">{{ timerStore.t.dashboard.emptyWeek }}</div>
         </div>
 
         <button @click="isTimelineExpanded = !isTimelineExpanded" class="flex items-center justify-between w-full mb-2 group cursor-pointer">

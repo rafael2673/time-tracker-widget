@@ -9,7 +9,7 @@ const props = defineProps({
   rounded: { type: String, default: '2rem' },
   compact: { type: [Boolean, String], default: false },
   apiUrl: { type: String },
-  lang: { type: String, default: 'pt' },
+  lang: { type: String, default: 'pt-BR' },
   email: { type: String },
   apiKey: { type: String }
 })
@@ -22,7 +22,7 @@ const errorMessage = ref('')
 
 const isCompactMode = computed(() => props.compact === true || props.compact === 'true')
 
-const currentLang = computed(() => (props.lang === 'en' ? 'en' : 'pt'))
+const currentLang = computed(() => (props.lang === 'en' ? 'en' : 'pt-BR'))
 const t = computed(() => translations[currentLang.value])
 
 onMounted(async () => {
@@ -36,7 +36,7 @@ onMounted(async () => {
     lang: currentLang.value
   }
 
-  timerStore.lang = currentLang.value
+  timerStore.lang = currentLang.value as 'pt-BR' | 'en'
 
   if (targetEmail && targetApiKey) {
     const success = await authStore.loginViaWidget(targetEmail, targetApiKey, targetName)
