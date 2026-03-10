@@ -8,10 +8,9 @@ import { translations } from './utils/i18n'
 const props = defineProps({
   rounded: { type: String, default: '2rem' },
   compact: { type: [Boolean, String], default: false },
-  apiUrl: { type: String },
+  apiUrl: { type: String, required: true },
   lang: { type: String, default: 'pt-BR' },
-  email: { type: String },
-  apiKey: { type: String }
+  token: { type: String }
 })
 
 const authStore = useAuthStore()
@@ -26,25 +25,20 @@ const currentLang = computed(() => (props.lang === 'en' ? 'en' : 'pt-BR'))
 const t = computed(() => translations[currentLang.value])
 
 onMounted(async () => {
-  const legacyConfig = (window as any).AP101_CONFIG || {}
-  const targetEmail = props.email || legacyConfig?.user?.email
-  const targetApiKey = props.apiKey || legacyConfig.apiKey
-  const targetName = legacyConfig?.user?.name
-
   ;(window as any).__TIME_TRACKER_CONFIG__ = {
-    apiUrl: props.apiUrl || legacyConfig.apiUrl,
+    apiUrl: props.apiUrl,
     lang: currentLang.value
   }
 
   timerStore.lang = currentLang.value as 'pt-BR' | 'en'
 
-  if (targetEmail && targetApiKey) {
-    const success = await authStore.loginViaWidget(targetEmail, targetApiKey, targetName)
+  if (props.token) {
+    authStore.setToken(props.token)
 
-    if (success) {
+    try {
       await timerStore.fetchTodayHistory()
       await timerStore.fetchWeeklySummary()
-    } else {
+    } catch (e) {
       hasError.value = true
       errorMessage.value = t.value.authError
     }
@@ -64,12 +58,12 @@ onMounted(async () => {
       <TimerWidget :rounded="props.rounded" :compact="isCompactMode" />
     </div>
 
-    <div v-else-if="isInitializing" key="loading" class="flex flex-col items-center justify-center p-6 text-indigo-600 dark:text-indigo-400 animate-pulse">
+    <div v-else-if="isInitializing" key="loading" class="flex flex-col items-center justify-center p-6 text-[var(--tt-primary,#4f46e5)] animate-pulse">
       <span class="text-xs font-bold uppercase tracking-widest">{{ t.loading }}</span>
     </div>
 
     <div v-else-if="hasError" key="error" class="flex flex-col items-center justify-center p-4 text-center">
-      <div class="text-red-500 font-bold text-xs mb-1">AP101 Tracker</div>
+      <div class="text-red-500 font-bold text-xs mb-1">Time Tracker</div>
       <div class="text-gray-400 text-[10px]">{{ errorMessage }}</div>
     </div>
 
