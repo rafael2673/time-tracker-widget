@@ -114,99 +114,135 @@ async function submitEdit() {
 
 <template>
   <div
-      class="w-full bg-white dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 shadow-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300 overflow-hidden"
-      :class="[compact ? 'px-3 py-1.5' : 'px-4 py-3']"
+      class="w-full bg-white dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 shadow-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300 overflow-hidden box-border flex items-center"
+      :class="[compact ? 'px-3 py-1.5 min-h-[40px]' : 'px-4 py-3']"
       :style="{ borderRadius: props.rounded }"
   >
 
-    <div class="flex items-center justify-between gap-3">
+    <div v-if="compact" class="flex items-center justify-between w-full h-full gap-2">
 
-      <div class="flex flex-col justify-center min-w-0 flex-1">
+      <div class="flex items-center gap-2">
+        <button @click="toggleTheme" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer p-0.5">
+          <Sun v-if="isDark" :size="14" />
+          <Moon v-else :size="14" />
+        </button>
 
-        <div class="flex items-center gap-2 mb-0.5">
-          <button @click="toggleTheme" class="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400" :class="compact ? 'p-0.5' : 'p-1'">
-            <Sun v-if="isDark" :size="10" />
-            <Moon v-else :size="10" />
-          </button>
-
-          <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-1">
-            <component :is="mainDisplay.icon" :size="10" />
-            {{ mainDisplay.label }}
-          </span>
+        <div class="font-mono font-bold text-lg tabular-nums leading-none tracking-tighter" :class="mainDisplay.colorClass">
+          {{ mainDisplay.time }}
         </div>
 
-        <div class="relative overflow-hidden" :class="compact ? 'h-7' : 'h-9'">
-          <Transition name="slide-up" mode="out-in">
-            <div
-                :key="timerStore.status"
-                class="font-mono font-bold tracking-tighter tabular-nums leading-none"
-                :class="[mainDisplay.colorClass, compact ? 'text-2xl' : 'text-3xl']"
-            >
-              {{ mainDisplay.time }}
-            </div>
-          </Transition>
-        </div>
-
-        <div class="flex items-center gap-2 mt-1">
-          <span class="text-[9px] font-bold uppercase tracking-wide px-2 py-px rounded-full border transition-colors"
-                :class="{
+        <span class="text-[9px] font-bold uppercase tracking-wide px-1.5 py-px rounded-full border"
+              :class="{
                  'bg-gray-50 text-gray-400 border-gray-100 dark:bg-gray-800 dark:border-gray-700': timerStore.status === 'IDLE' || timerStore.status === 'FINISHED',
                  'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-800': timerStore.status === 'WORKING',
                  'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-800': timerStore.status === 'PAUSED'
                }">
-            {{ timerStore.statusLabel }}
-          </span>
-
-          <span v-if="secondaryDisplay.time !== '00:00:00'" class="flex items-center gap-1 text-[10px] text-gray-400 font-mono border-l border-gray-200 dark:border-gray-700 pl-2">
-            <component :is="secondaryDisplay.icon" :size="10" />
-            {{ secondaryDisplay.label }}: {{ secondaryDisplay.time }}
-          </span>
-        </div>
+          {{ timerStore.statusLabel }}
+        </span>
       </div>
 
-      <div class="flex items-center gap-2" v-if="timerStore.status !== 'FINISHED'">
-
-        <button
-            @click="timerStore.registerPoint"
-            :disabled="timerStore.isProcessing"
-            class="group relative flex items-center justify-center bg-[var(--tt-primary,#4f46e5)] hover:bg-[var(--tt-primary-hover,#4338ca)] text-white shadow-lg shadow-[var(--tt-primary,#4f46e5)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-            :class="compact ? 'w-9 h-9 rounded-lg' : 'w-12 h-12 rounded-2xl'"
-        >
-          <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="compact ? 16 : 20" />
+      <div class="flex items-center gap-1.5" v-if="timerStore.status !== 'FINISHED'">
+        <button @click="timerStore.registerPoint" :disabled="timerStore.isProcessing"
+                class="flex items-center justify-center bg-[var(--tt-primary,#4f46e5)] text-white rounded-md w-7 h-7 hover:bg-[var(--tt-primary-hover,#4338ca)] disabled:opacity-70 transition-colors cursor-pointer">
+          <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="14" />
           <template v-else>
-            <Play v-if="timerStore.status === 'IDLE' || timerStore.status === 'PAUSED'" :size="compact ? 16 : 20" fill="currentColor" class="ml-0.5" />
-            <Pause v-else-if="timerStore.status === 'WORKING'" :size="compact ? 16 : 20" fill="currentColor" />
+            <Play v-if="timerStore.status === 'IDLE' || timerStore.status === 'PAUSED'" :size="14" fill="currentColor" class="ml-0.5" />
+            <Pause v-else-if="timerStore.status === 'WORKING'" :size="14" fill="currentColor" />
           </template>
         </button>
 
-        <button
-            v-if="timerStore.status === 'WORKING' || timerStore.status === 'PAUSED'"
-            @click="timerStore.registerExit"
-            :disabled="timerStore.isProcessing"
-            class="group relative flex items-center justify-center border-2 border-red-500 text-red-500 bg-transparent hover:bg-red-500 hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-red-500 dark:disabled:hover:text-red-400 dark:disabled:hover:bg-transparent"
-            :class="compact ? 'w-9 h-9 rounded-lg' : 'w-12 h-12 rounded-2xl'"
-        >
-          <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="compact ? 14 : 18" />
-          <Square v-else :size="compact ? 14 : 18" fill="currentColor" />
+        <button v-if="timerStore.status === 'WORKING' || timerStore.status === 'PAUSED'"
+                @click="timerStore.registerExit" :disabled="timerStore.isProcessing"
+                class="flex items-center justify-center border border-red-500 text-red-500 bg-transparent rounded-md w-7 h-7 hover:bg-red-500 hover:text-white disabled:opacity-50 transition-colors cursor-pointer">
+          <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="12" />
+          <Square v-else :size="12" fill="currentColor" />
+        </button>
+
+        <div class="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+        <button @click="showDetails = true" class="text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] transition-colors p-1 cursor-pointer" title="Abrir Painel">
+          <BarChart3 :size="16" />
         </button>
       </div>
 
-      <div v-else class="text-green-500 font-bold text-[10px] uppercase tracking-wide text-right pr-2">
-        {{ timerStore.t.status.finished }}
+      <div v-else class="flex items-center gap-2">
+        <span class="text-green-500 font-bold text-[9px] uppercase">{{ timerStore.t.status.finished }}</span>
+        <div class="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
+        <button @click="showDetails = true" class="text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] transition-colors p-1 cursor-pointer" title="Abrir Painel">
+          <BarChart3 :size="16" />
+        </button>
       </div>
     </div>
 
-    <div class="flex items-center justify-end border-t border-gray-50 dark:border-gray-800/50" :class="compact ? 'mt-1 pt-0.5' : 'mt-2 pt-1.5'">
-      <button @click="showDetails = true"
-              class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] dark:hover:text-[var(--tt-primary-light,#818cf8)] transition-colors cursor-pointer font-medium hover:bg-gray-50 dark:hover:bg-gray-800" :class="compact ? 'py-0.5 px-1.5' : 'py-1 px-2 rounded-full'">
-        <span>{{ timerStore.t.actions.openPanel }}</span>
-        <ChevronRight :size="12" />
-      </button>
+    <div v-else class="w-full">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex flex-col justify-center min-w-0 flex-1">
+          <div class="flex items-center gap-2 mb-0.5">
+            <button @click="toggleTheme" class="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400 p-1">
+              <Sun v-if="isDark" :size="10" />
+              <Moon v-else :size="10" />
+            </button>
+            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-1">
+              <component :is="mainDisplay.icon" :size="10" />
+              {{ mainDisplay.label }}
+            </span>
+          </div>
+
+          <div class="relative overflow-hidden h-9">
+            <Transition name="slide-up" mode="out-in">
+              <div :key="timerStore.status" class="font-mono font-bold tracking-tighter tabular-nums leading-none text-3xl" :class="mainDisplay.colorClass">
+                {{ mainDisplay.time }}
+              </div>
+            </Transition>
+          </div>
+
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-[9px] font-bold uppercase tracking-wide px-2 py-px rounded-full border transition-colors"
+                  :class="{
+                   'bg-gray-50 text-gray-400 border-gray-100 dark:bg-gray-800 dark:border-gray-700': timerStore.status === 'IDLE' || timerStore.status === 'FINISHED',
+                   'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-800': timerStore.status === 'WORKING',
+                   'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-800': timerStore.status === 'PAUSED'
+                 }">
+              {{ timerStore.statusLabel }}
+            </span>
+
+            <span v-if="secondaryDisplay.time !== '00:00:00'" class="flex items-center gap-1 text-[10px] text-gray-400 font-mono border-l border-gray-200 dark:border-gray-700 pl-2">
+              <component :is="secondaryDisplay.icon" :size="10" />
+              {{ secondaryDisplay.label }}: {{ secondaryDisplay.time }}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2" v-if="timerStore.status !== 'FINISHED'">
+          <button @click="timerStore.registerPoint" :disabled="timerStore.isProcessing" class="group relative flex items-center justify-center bg-[var(--tt-primary,#4f46e5)] hover:bg-[var(--tt-primary-hover,#4338ca)] text-white shadow-lg shadow-[var(--tt-primary,#4f46e5)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed w-12 h-12 rounded-2xl">
+            <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="20" />
+            <template v-else>
+              <Play v-if="timerStore.status === 'IDLE' || timerStore.status === 'PAUSED'" :size="20" fill="currentColor" class="ml-0.5" />
+              <Pause v-else-if="timerStore.status === 'WORKING'" :size="20" fill="currentColor" />
+            </template>
+          </button>
+
+          <button v-if="timerStore.status === 'WORKING' || timerStore.status === 'PAUSED'" @click="timerStore.registerExit" :disabled="timerStore.isProcessing" class="group relative flex items-center justify-center border-2 border-red-500 text-red-500 bg-transparent hover:bg-red-500 hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-red-500 dark:disabled:hover:text-red-400 dark:disabled:hover:bg-transparent w-12 h-12 rounded-2xl">
+            <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="18" />
+            <Square v-else :size="18" fill="currentColor" />
+          </button>
+        </div>
+
+        <div v-else class="text-green-500 font-bold text-[10px] uppercase tracking-wide text-right pr-2">
+          {{ timerStore.t.status.finished }}
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end border-t border-gray-50 dark:border-gray-800/50 mt-2 pt-1.5">
+        <button @click="showDetails = true" class="flex items-center gap-1 text-[10px] text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] dark:hover:text-[var(--tt-primary-light,#818cf8)] transition-colors cursor-pointer font-medium hover:bg-gray-50 dark:hover:bg-gray-800 py-1 px-2 rounded-full">
+          <span>{{ timerStore.t.actions.openPanel }}</span>
+          <ChevronRight :size="12" />
+        </button>
+      </div>
     </div>
   </div>
 
   <div v-if="showDetails" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 font-sans">
-
     <div v-if="editingRecordId" class="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
       <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl w-full max-w-xs p-5">
         <h3 class="text-sm font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
@@ -235,7 +271,6 @@ async function submitEdit() {
     </div>
 
     <div class="bg-white dark:bg-gray-900 w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-200 dark:border-gray-800" :style="{ borderRadius: props.rounded }">
-
       <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
         <h2 class="text-sm font-bold text-gray-800 dark:text-white flex items-center gap-2 uppercase tracking-wide">
           <Calendar :size="16" class="text-[var(--tt-primary,#4f46e5)]" />
@@ -274,10 +309,10 @@ async function submitEdit() {
         <div class="mb-6 space-y-2 bg-white dark:bg-gray-800/50 p-3 rounded-2xl border border-gray-100 dark:border-gray-700">
           <template v-if="timerStore.visibleWeeklyChart.length > 0">
             <button
-              v-for="data in timerStore.visibleWeeklyChart"
-              :key="data.day"
-              @click="timerStore.selectDay(data.date)"
-              class="flex items-center gap-3 w-full text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg px-1 py-0.5 transition-colors"
+                v-for="data in timerStore.visibleWeeklyChart"
+                :key="data.day"
+                @click="timerStore.selectDay(data.date)"
+                class="flex items-center gap-3 w-full text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg px-1 py-0.5 transition-colors"
             >
               <span class="w-8 text-[10px] font-bold text-gray-400 uppercase">{{ data.day }}</span>
               <span class="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
