@@ -274,7 +274,7 @@ export const useTimerStore = defineStore('timer', () => {
                 headers: { 'Authorization': `Bearer ${authStore.token}` },
                 body: {
                     recordType: type,
-                    source: 'AUTOMATIC_GPS',
+                    source: 'MANUAL',
                     registeredAt: localDateTime,
                     latitude: lat,
                     longitude: lon
