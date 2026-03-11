@@ -10,10 +10,9 @@ const WidgetWrapper = defineCustomElement({
     props: {
         compact: { type: [Boolean, String], default: false },
         rounded: { type: String, default: '2rem' },
-        apiUrl: { type: String },
+        apiUrl: { type: String, required: true },
         lang: { type: String, default: 'pt-BR' },
-        email: { type: String },
-        apiKey: { type: String }
+        token: { type: String }
     },
     setup(props) {
         const app = createApp({})
@@ -28,10 +27,9 @@ const WidgetWrapper = defineCustomElement({
         return () => h(App, {
             compact: props.compact,
             rounded: props.rounded,
-            apiUrl: props.apiUrl,
+            apiUrl: props.apiUrl as string,
             lang: props.lang,
-            email: props.email,
-            apiKey: props.apiKey
+            token: props.token
         })
     }
 })
