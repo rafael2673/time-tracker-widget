@@ -20,6 +20,18 @@ interface DailySummary {
     date: string
 }
 
+interface MonthlyBalance {
+    workedHours: number
+    expectedHours: number
+    balance: number
+}
+
+interface MonthSummary {
+    month: number
+    monthName: string
+    workedHours: number
+}
+
 export const useTimerStore = defineStore('timer', () => {
     const status = ref<WorkStatus>('IDLE')
     const lang = ref<'pt-BR' | 'en'>('pt-BR')
@@ -34,9 +46,13 @@ export const useTimerStore = defineStore('timer', () => {
 
     const todayRecords = ref<TimeRecord[]>([])
     const weeklyData = ref<DailySummary[]>([])
+    const availableYears = ref<number[]>([])
+    const yearlyData = ref<MonthSummary[]>([])
+    const monthlyBalance = ref<MonthlyBalance | null>(null)
 
     const intervalId = ref<any>(null)
     const isProcessing = ref(false)
+    const showDetails = ref(false)
     const authStore = useAuthStore()
 
     const historyReferenceDate = ref(new Date())
@@ -80,16 +96,6 @@ export const useTimerStore = defineStore('timer', () => {
     const formattedTotalPause = computed(() => {
         const pending = status.value === 'PAUSED' ? currentPauseElapsed.value : 0
         return formatDuration(accumulatedPauseTime.value + pending)
-    })
-
-    const nextActionLabel = computed(() => {
-        switch (status.value) {
-            case 'IDLE':
-            case 'FINISHED': return t.value.actions.start
-            case 'WORKING': return t.value.actions.pause
-            case 'PAUSED': return t.value.actions.resume
-            default: return ''
-        }
     })
 
     const statusLabel = computed(() => {
@@ -262,6 +268,36 @@ export const useTimerStore = defineStore('timer', () => {
         }
     }
 
+    async function fetchAvailableYears() {
+        if (!authStore.token) return
+        try {
+            availableYears.value = await $api('/api/v1/summary/years', {
+                headers: { 'Authorization': `Bearer ${authStore.token}` }
+            })
+        } catch (error) {
+        }
+    }
+
+    async function fetchYearlySummary(year: number) {
+        if (!authStore.token) return
+        try {
+            yearlyData.value = await $api(`/api/v1/summary/yearly?year=${year}`, {
+                headers: { 'Authorization': `Bearer ${authStore.token}` }
+            })
+        } catch (error) {
+        }
+    }
+
+    async function fetchMonthlyBalance(year: number, month: number) {
+        if (!authStore.token) return
+        try {
+            monthlyBalance.value = await $api(`/api/v1/summary/monthly-balance?year=${year}&month=${month}`, {
+                headers: { 'Authorization': `Bearer ${authStore.token}` }
+            })
+        } catch (error) {
+        }
+    }
+
     async function sendRecord(type: string) {
         if (!authStore.token) return
 
@@ -309,6 +345,9 @@ export const useTimerStore = defineStore('timer', () => {
             })
             await fetchTodayHistory()
             await fetchWeeklySummary()
+            if (monthlyBalance.value) {
+                await fetchMonthlyBalance(originalDate.getFullYear(), originalDate.getMonth() + 1)
+            }
         } catch (error) {
             throw error
         }
@@ -366,7 +405,6 @@ export const useTimerStore = defineStore('timer', () => {
         t,
         formattedTime,
         formattedTotalPause,
-        nextActionLabel,
         statusLabel,
         todayRecords,
         sortedRecords,
@@ -374,12 +412,20 @@ export const useTimerStore = defineStore('timer', () => {
         visibleWeeklyChart,
         timelineLabel,
         isProcessing,
+        showDetails,
+        historyReferenceDate,
+        availableYears,
+        yearlyData,
+        monthlyBalance,
         changeWeek,
         selectDay,
         registerPoint,
         registerExit,
         fetchTodayHistory,
         fetchWeeklySummary,
+        fetchAvailableYears,
+        fetchYearlySummary,
+        fetchMonthlyBalance,
         editRecord
     }
 })
