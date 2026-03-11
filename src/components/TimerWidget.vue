@@ -57,7 +57,7 @@ const mainDisplay = computed(() => {
     }
   }
   return {
-    label: timerStore.t.status.working,
+    label: timerStore.status === 'FINISHED' ? timerStore.t.status.working : timerStore.t.status.working,
     time: timerStore.formattedTime,
     colorClass: 'text-[var(--tt-primary,#4f46e5)] dark:text-[var(--tt-primary-light,#818cf8)]',
     icon: Clock
@@ -141,12 +141,12 @@ async function submitEdit() {
         </span>
       </div>
 
-      <div class="flex items-center gap-1.5" v-if="timerStore.status !== 'FINISHED'">
+      <div class="flex items-center gap-1.5">
         <button @click="timerStore.registerPoint" :disabled="timerStore.isProcessing"
                 class="flex items-center justify-center bg-[var(--tt-primary,#4f46e5)] text-white rounded-md w-7 h-7 hover:bg-[var(--tt-primary-hover,#4338ca)] disabled:opacity-70 transition-colors cursor-pointer">
           <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="14" />
           <template v-else>
-            <Play v-if="timerStore.status === 'IDLE' || timerStore.status === 'PAUSED'" :size="14" fill="currentColor" class="ml-0.5" />
+            <Play v-if="['IDLE', 'PAUSED', 'FINISHED'].includes(timerStore.status)" :size="14" fill="currentColor" class="ml-0.5" />
             <Pause v-else-if="timerStore.status === 'WORKING'" :size="14" fill="currentColor" />
           </template>
         </button>
@@ -160,14 +160,6 @@ async function submitEdit() {
 
         <div class="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
-        <button @click="showDetails = true" class="text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] transition-colors p-1 cursor-pointer" title="Abrir Painel">
-          <BarChart3 :size="16" />
-        </button>
-      </div>
-
-      <div v-else class="flex items-center gap-2">
-        <span class="text-green-500 font-bold text-[9px] uppercase">{{ timerStore.t.status.finished }}</span>
-        <div class="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
         <button @click="showDetails = true" class="text-gray-400 hover:text-[var(--tt-primary,#4f46e5)] transition-colors p-1 cursor-pointer" title="Abrir Painel">
           <BarChart3 :size="16" />
         </button>
@@ -213,11 +205,11 @@ async function submitEdit() {
           </div>
         </div>
 
-        <div class="flex items-center gap-2" v-if="timerStore.status !== 'FINISHED'">
+        <div class="flex items-center gap-2">
           <button @click="timerStore.registerPoint" :disabled="timerStore.isProcessing" class="group relative flex items-center justify-center bg-[var(--tt-primary,#4f46e5)] hover:bg-[var(--tt-primary-hover,#4338ca)] text-white shadow-lg shadow-[var(--tt-primary,#4f46e5)]/20 active:scale-95 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed w-12 h-12 rounded-2xl">
             <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="20" />
             <template v-else>
-              <Play v-if="timerStore.status === 'IDLE' || timerStore.status === 'PAUSED'" :size="20" fill="currentColor" class="ml-0.5" />
+              <Play v-if="['IDLE', 'PAUSED', 'FINISHED'].includes(timerStore.status)" :size="20" fill="currentColor" class="ml-0.5" />
               <Pause v-else-if="timerStore.status === 'WORKING'" :size="20" fill="currentColor" />
             </template>
           </button>
@@ -226,10 +218,6 @@ async function submitEdit() {
             <Loader2 v-if="timerStore.isProcessing" class="animate-spin" :size="18" />
             <Square v-else :size="18" fill="currentColor" />
           </button>
-        </div>
-
-        <div v-else class="text-green-500 font-bold text-[10px] uppercase tracking-wide text-right pr-2">
-          {{ timerStore.t.status.finished }}
         </div>
       </div>
 

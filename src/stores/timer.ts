@@ -84,7 +84,8 @@ export const useTimerStore = defineStore('timer', () => {
 
     const nextActionLabel = computed(() => {
         switch (status.value) {
-            case 'IDLE': return t.value.actions.start
+            case 'IDLE':
+            case 'FINISHED': return t.value.actions.start
             case 'WORKING': return t.value.actions.pause
             case 'PAUSED': return t.value.actions.resume
             default: return ''
@@ -317,7 +318,7 @@ export const useTimerStore = defineStore('timer', () => {
         if (isProcessing.value) return
         isProcessing.value = true
         try {
-            if (status.value === 'IDLE') {
+            if (status.value === 'IDLE' || status.value === 'FINISHED') {
                 await sendRecord('ENTRY')
             } else if (status.value === 'WORKING') {
                 await sendRecord('PAUSE_START')
