@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useTimerStore } from '../stores/timer'
+import { useAuthStore } from '../stores/auth'
 import TimerSlim from './TimerSlim.vue'
 import TimerCard from './TimerCard.vue'
 import DashboardModal from './DashboardModal.vue'
+import SetPasswordModal from './SetPasswordModal.vue'
 
 const props = defineProps({
   rounded: {
@@ -16,6 +18,7 @@ const props = defineProps({
 })
 
 const timerStore = useTimerStore()
+const authStore = useAuthStore()
 </script>
 
 <template>
@@ -29,4 +32,5 @@ const timerStore = useTimerStore()
   </div>
 
   <DashboardModal v-if="timerStore.showDetails" />
+  <SetPasswordModal v-if="authStore.showPasswordModal" />
 </template>
