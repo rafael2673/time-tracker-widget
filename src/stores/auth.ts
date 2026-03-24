@@ -46,6 +46,8 @@ export const useAuthStore = defineStore('auth', () => {
             if (data && data.token) {
                 setToken(data.token)
                 setUser(config.user)
+                hasWebPassword.value = data.hasPassword === true
+                localStorage.setItem('tt_web_pwd_set', data.hasPassword ? 'true' : 'false')
                 return true
             }
         } catch (error: unknown) {
