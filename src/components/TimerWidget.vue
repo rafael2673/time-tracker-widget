@@ -12,7 +12,11 @@ const props = defineProps({
     default: '2rem'
   },
   compact: {
-    type: [Boolean, String],
+    type: Boolean,
+    default: false
+  },
+  hideThemeToggle: {
+    type: Boolean,
     default: false
   }
 })
@@ -27,8 +31,8 @@ const authStore = useAuthStore()
       :class="[compact ? 'px-3 py-1.5 min-h-[40px]' : 'px-4 py-3']"
       :style="{ borderRadius: props.rounded }"
   >
-    <TimerSlim v-if="compact" />
-    <TimerCard v-else />
+    <TimerSlim v-if="compact" :hide-theme-toggle="props.hideThemeToggle" />
+    <TimerCard v-else :hide-theme-toggle="props.hideThemeToggle" />
   </div>
 
   <DashboardModal v-if="timerStore.showDetails" />

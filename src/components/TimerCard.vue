@@ -4,6 +4,13 @@ import { useTimerStore } from '../stores/timer'
 import { useTheme } from '../composables/useTheme'
 import { Play, Moon, Sun, Clock, Square, Coffee, ChevronRight, Pause, Loader2 } from 'lucide-vue-next'
 
+const props = defineProps({
+  hideThemeToggle: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const timerStore = useTimerStore()
 const { isDark, toggleTheme } = useTheme()
 
@@ -45,7 +52,7 @@ const secondaryDisplay = computed(() => {
     <div class="flex items-center justify-between gap-3">
       <div class="flex flex-col justify-center min-w-0 flex-1">
         <div class="flex items-center gap-2 mb-0.5">
-          <button @click="toggleTheme" class="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400 p-1">
+          <button v-if="!props.hideThemeToggle" @click="toggleTheme" class="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400 p-1">
             <Sun v-if="isDark" :size="10" />
             <Moon v-else :size="10" />
           </button>

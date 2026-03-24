@@ -10,7 +10,8 @@ const props = defineProps({
   compact: { type: [Boolean, String], default: false },
   apiUrl: { type: String, required: true },
   lang: { type: String, default: 'pt-BR' },
-  token: { type: String }
+  token: { type: String },
+  hideThemeToggle: { type: [Boolean, String], default: false }
 })
 
 const authStore = useAuthStore()
@@ -20,6 +21,7 @@ const hasError = ref(false)
 const errorMessage = ref('')
 
 const isCompactMode = computed(() => props.compact === true || props.compact === 'true')
+const isThemeToggleHidden = computed(() => props.hideThemeToggle === true || props.hideThemeToggle === 'true')
 
 const currentLang = computed(() => (props.lang === 'en' ? 'en' : 'pt-BR'))
 const t = computed(() => translations[currentLang.value])
@@ -55,7 +57,7 @@ onMounted(async () => {
   <div class="w-full flex flex-col items-center justify-start bg-transparent font-sans">
 
     <div v-if="!isInitializing && authStore.isAuthenticated && !hasError" key="widget" class="w-full">
-      <TimerWidget :rounded="props.rounded" :compact="isCompactMode" />
+      <TimerWidget :rounded="props.rounded" :compact="isCompactMode" :hide-theme-toggle="isThemeToggleHidden" />
     </div>
 
     <div v-else-if="isInitializing" key="loading" class="flex flex-col items-center justify-center p-6 text-[var(--tt-primary,#4f46e5)] animate-pulse">
