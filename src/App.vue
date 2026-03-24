@@ -11,7 +11,9 @@ const props = defineProps({
   apiUrl: { type: String, required: true },
   lang: { type: String, default: 'pt-BR' },
   token: { type: String },
-  hideThemeToggle: { type: [Boolean, String], default: false }
+  hideThemeToggle: { type: [Boolean, String], default: false },
+  'hide-theme-toggle': { type: [Boolean, String], default: false },
+  hidethemetoggle: { type: [Boolean, String], default: false }
 })
 
 const authStore = useAuthStore()
@@ -21,7 +23,13 @@ const hasError = ref(false)
 const errorMessage = ref('')
 
 const isCompactMode = computed(() => props.compact === true || props.compact === 'true')
-const isThemeToggleHidden = computed(() => props.hideThemeToggle === true || props.hideThemeToggle === 'true')
+
+const isThemeToggleHidden = computed(() => {
+  const v1 = props.hideThemeToggle
+  const v2 = props['hide-theme-toggle']
+  const v3 = props.hidethemetoggle
+  return v1 === true || v1 === 'true' || v2 === true || v2 === 'true' || v3 === true || v3 === 'true'
+})
 
 const currentLang = computed(() => (props.lang === 'en' ? 'en' : 'pt-BR'))
 const t = computed(() => translations[currentLang.value])
